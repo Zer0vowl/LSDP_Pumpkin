@@ -13,33 +13,39 @@ class COLOR_SPACE(Enum):
 
 class miniproject:
 
-	def __init__(self, path_image = None, path_annotated=None):
-		self.annotated_image = None
+	def __init__(self, tif_image = None, refference_image = None, refference_annotated=None):
+		self.ref_image_annotated = None
 		self.image = None
 		self.mask = None
-
 		self.mean = 0
+		self.ref_image = None
 		self.std = 0
 
-		if path_image:
-			self.image = self.open_image(path_image)
-			self.image = cv.GaussianBlur(self.image, (5, 5), 0)
-		if path_annotated:
-			self.annotated_image = self.open_image(path_annotated)
+		if tif_image:
+			self.image = self.open_image(tif_image)
+
+		if refference_image:
+			self.ref_image = self.open_image(refference_image)
+			self.ref_image = cv.GaussianBlur(self.ref_image, (5, 5), 0)
+
+		if refference_annotated:
+			self.ref_image_annotated = self.open_image(refference_annotated)
+
 
 	def open_image(self, path):
 		image = cv.imread(path)
 		return image
 
+
 	def change_color_space(self, color_space):
 		if color_space == COLOR_SPACE.CIELAB:
-			self.image = cv.cvtColor(self.image, cv.COLOR_BGR2LAB)
+			self.ref_image = cv.cvtColor(self.ref_image, cv.COLOR_BGR2LAB)
 		elif color_space == COLOR_SPACE.HLS:
-			self.image = cv.cvtColor(self.image, cv.COLOR_BGR2HLS)
+			self.ref_image = cv.cvtColor(self.ref_image, cv.COLOR_BGR2HLS)
 		elif color_space == COLOR_SPACE.HSV:
-			self.image = cv.cvtColor(self.image, cv.COLOR_BGR2HSV)
+			self.ref_image = cv.cvtColor(self.ref_image, cv.COLOR_BGR2HSV)
 		elif color_space == COLOR_SPACE.RGB:
-			self.image = cv.cvtColor(self.image, cv.COLOR_BGR2RGB)
+			self.ref_image = cv.cvtColor(self.ref_image, cv.COLOR_BGR2RGB)
 		else:
 			print("Imcorrect color space")
 
@@ -53,7 +59,7 @@ class miniproject:
 
 
 if __name__ == "__main__":
-	project = miniproject('figures/EB-02-660_0595_0068.JPG','figures/pumpkin_annottated.JPG')
+	project = miniproject('./figures/pumpkins_cropped.tif', 'figures/EB-02-660_0595_0068.JPG','figures/pumpkin_annottated.JPG')
 	if project.image is None:
 		Warning("Image not loaded")
 		exit(1)
@@ -62,16 +68,13 @@ if __name__ == "__main__":
 
 	red_lower = (0, 0, 200)
 	red_upper = (100, 100, 255)
-	annotated_mask = project.create_mask(project.annotated_image, red_lower, red_upper)
+	annotated_mask = project.create_mask(project.ref_image_annotated, red_lower, red_upper)
+	masked_image = cv.bitwise_and(project.ref_image, project.ref_image, mask=annotated_mask)
 
+	# Only take BGR values
+	mean_color = cv.mean(project.ref_image, mask=project.mask)
 
-	masked_image = None
-	masked_image = cv.bitwise_and(project.image, project.image, mask=annotated_mask)
-
-	""" print(type(masked_image)) """
-	mean_color = cv.mean(project.image, mask=project.mask)  # Only take BGR values
-
-	mean, stddev = cv.meanStdDev(project.image, mask=project.mask)
+	mean, stddev = cv.meanStdDev(project.ref_image, mask=project.mask)
 
 	# Convert from 2D array to tuple
 	mean = tuple(mean.flatten())
@@ -88,12 +91,8 @@ if __name__ == "__main__":
 	global_mask = project.create_mask(project.image, low_orange, upper_orange)
 	cv.imwrite("figures/output/global_mask.jpg", global_mask)
 
-	closed_image = cv.dilate(global_mask, None, iterations=4)
+	closed_image = cv.dilate(global_mask, None, iterations=1)
 	cv.imwrite("figures/output/global_mask_dilated.jpg", closed_image)
-
-	""" kernel = np.ones((10, 10), np.uint8) """
-	""" closed_image = cv.morphologyEx(global_mask, cv.MORPH_CLOSE, kernel) """
-	""" cv.imwrite("figures/output/closed_image.jpg", closed_image) """
 
 	out = cv.bitwise_and(project.image, project.image, mask=closed_image)
 	cv.imwrite("figures/output/out.jpg", out)

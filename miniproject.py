@@ -104,3 +104,15 @@ if __name__ == "__main__":
 	""" cv.imshow("annotated", masked_image) """
 	""" cv.waitKey(0) """
 	cv.destroyAllWindows()
+
+	contours, hierarchy = cv.findContours(closed_image, cv.RETR_TREE,
+			cv.CHAIN_APPROX_SIMPLE)
+
+	# Draw a circle above the center of each of the detected contours.
+	for contour in contours:
+		M = cv.moments(contour)
+		cx = int(M['m10'] / M['m00'])
+		cy = int(M['m01'] / M['m00'])
+		cv.circle(project.image, (cx, cy), 40, (0, 0, 255), 2)
+
+	print("Number of detected balls: %d" % len(contours))

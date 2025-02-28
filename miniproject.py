@@ -31,7 +31,6 @@ class miniproject:
 		return image
 
 	def change_color_space(self, color_space):
-		
 		if color_space == COLOR_SPACE.CIELAB:
 			self.image = cv.cvtColor(self.image, cv.COLOR_BGR2LAB)
 		elif color_space == COLOR_SPACE.HLS:
@@ -59,8 +58,13 @@ if __name__ == "__main__":
 	red_upper = (100, 100, 255)
 	project.create_mask(red_lower, red_upper)
  
-	cv.imwrite("figures/output/mask.jpg", project.mask)
+	masked_image = None
+	masked_image = cv.bitwise_and(project.image, project.image, mask=project.mask)
+	print(type(masked_image))
  
-	cv.imshow("annotated", project.mask)
+	cv.imwrite("figures/output/mask.jpg", project.mask)
+	cv.imwrite("figures/output/masked_image.jpg", masked_image)
+
+	cv.imshow("annotated", masked_image)
 	cv.waitKey(0)
 	cv.destroyAllWindows()

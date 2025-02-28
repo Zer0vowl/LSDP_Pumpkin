@@ -22,6 +22,7 @@ class miniproject:
 
 		if tif_image:
 			self.image = self.open_image(tif_image)
+			#self.image = cv.GaussianBlur(self.image, (5, 5), 0)
 
 		if refference_image:
 			self.ref_image = self.open_image(refference_image)
@@ -135,15 +136,12 @@ if __name__ == "__main__":
 
 	out = cv.bitwise_and(project.image, project.image, mask=global_mask)
 	cv.imwrite("figures/output/out.jpg", out)
-
+ 
+ 
 	cv.imwrite("figures/output/mask.jpg", project.mask)
 	cv.imwrite("figures/output/masked_image.jpg", masked_image)
 
 	contours = project.findContours(global_mask)
 
 	cv.imwrite("figures/output/detected_pumpkins.jpg", project.image)
-	""" cv.imshow("detected_pumpkins", project.image) """
-	""" cv.waitKey(0) """
-	""" cv.destroyAllWindows() """
-
-	print("Number of detected balls: %d" % len(contours))
+	print("Number of detected pumpkins: %d" % len(contours))

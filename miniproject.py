@@ -17,9 +17,7 @@ class miniproject:
 		self.ref_image_annotated = None
 		self.image = None
 		self.mask = None
-		self.mean = 0
 		self.ref_image = None
-		self.std = 0
 		self.colorspace = ColorSpace.RGB
 
 		if tif_image:
@@ -39,6 +37,8 @@ class miniproject:
 
 
 	def change_color_space(self, color_space):
+		self.colorspace = color_space
+
 		if color_space == ColorSpace.CIELAB:
 			self.ref_image = cv.cvtColor(self.ref_image, cv.COLOR_BGR2LAB)
 		elif color_space == ColorSpace.HLS:
@@ -53,10 +53,7 @@ class miniproject:
 
 	def threshold(self, image, lower_bound, upper_bound):
 		self.mask = cv.inRange(image, lower_bound, upper_bound)
-
-		self.mean, self.std = cv.meanStdDev(image, self.mask)
 		return self.mask
-		""" print(self.mean) """
 
 
 	def mahalanobis_distance_mask(self):

@@ -171,3 +171,4 @@ cython_debug/
 .pypirc
 figures/output
 figures/pumpkins.qgz
+.null-ls_929621_miniproject.py

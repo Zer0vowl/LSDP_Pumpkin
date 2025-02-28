@@ -58,6 +58,28 @@ class miniproject:
 		""" print(self.mean) """
 
 
+	def mahalanobis_distance(self, annotated_mask):
+		indices = np.where(annotated_mask > 0)
+		extracted_pixels = project.ref_image[indices[0], indices[1]]
+		mean = np.mean(extracted_pixels, axis=0)
+		covar, _ = cv.calcCovarMatrix(extracted_pixels, mean, cv.COVAR_NORMAL | cv.COVAR_ROWS | cv.COVAR_SCALE)
+
+		pixels = np.reshape(self.ref_image, (-1, 3))
+		diff = pixels - np.repeat([mean], pixels.shape[0], axis=0)
+		inv_cov = np.linalg.inv(covar)
+		moddotproduct = diff * (diff @ inv_cov)
+		mahalanobis_dist = np.sum(moddotproduct, axis=1)
+		mahalanobis_distance_image = np.reshape(mahalanobis_dist, (self.ref_image.shape[0], self.ref_image.shape[1]))
+		cv.imwrite("figures/output/mahalanobis_distance_image.jpg", mahalanobis_distance_image)
+		cv.threshold(mahalanobis_distance_image, 10, 255, cv.THRESH_BINARY_INV, mahalanobis_distance_image)
+
+		cv.imwrite("figures/output/mahalanobis_distance_image_thrashold.jpg", mahalanobis_distance_image)
+		return mahalanobis_distance_image
+
+
+
+
+
 if __name__ == "__main__":
 	project = miniproject('./figures/pumpkins_cropped.tif', 'figures/EB-02-660_0595_0068.JPG','figures/pumpkin_annottated.JPG')
 	if project.image is None:
@@ -69,12 +91,15 @@ if __name__ == "__main__":
 	red_lower = (0, 0, 200)
 	red_upper = (100, 100, 255)
 	annotated_mask = project.create_mask(project.ref_image_annotated, red_lower, red_upper)
-	masked_image = cv.bitwise_and(project.ref_image, project.ref_image, mask=annotated_mask)
+	mahalanobis_mask = project.mahalanobis_distance(annotated_mask).astype(np.uint8)
+	print(mahalanobis_mask.shape, mahalanobis_mask.dtype)
+	masked_image = cv.bitwise_and(project.ref_image, project.ref_image, mask=mahalanobis_mask)
 
 	# Only take BGR values
-	mean_color = cv.mean(project.ref_image, mask=project.mask)
+	mean_color = cv.mean(project.ref_image, mask=mahalanobis_mask)
 
-	mean, stddev = cv.meanStdDev(project.ref_image, mask=project.mask)
+	mean, stddev = cv.meanStdDev(project.ref_image, mask=mahalanobis_mask)
+
 
 	# Convert from 2D array to tuple
 	mean = tuple(mean.flatten())
@@ -84,9 +109,9 @@ if __name__ == "__main__":
 	# Setup the lower and upper bounds for the mask.
 	# The color is dependent on the mean and standard deviation of the values created by the annotated image.
 	gain = 4
-	low_orange = np.array([a - b for a, b in zip(mean, stddev*gain)])
-	upper_orange = np.array([a + b for a, b in zip(mean, stddev*gain)])
-	print(low_orange, upper_orange)
+	low_orange = np.array([a - b for a, b in zip(mean, stddev)])
+	upper_orange = np.array([a + b for a, b in zip(mean, stddev)])
+	""" print(low_orange, upper_orange) """
 
 	global_mask = project.create_mask(project.image, low_orange, upper_orange)
 	cv.imwrite("figures/output/global_mask.jpg", global_mask)

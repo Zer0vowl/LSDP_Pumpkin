@@ -112,6 +112,8 @@ if __name__ == "__main__":
 		M = cv.moments(contour)
 		cx = int(M['m10'] / M['m00'])
 		cy = int(M['m01'] / M['m00'])
-		cv.circle(project.image, (cx, cy), 40, (0, 0, 255), 2)
+		cv.circle(project.image, (cx, cy), 5, (0, 0, 255), 1)
+
+	cv.imwrite("figures/output/detected_pumpkins.jpg", project.image)
 
 	print("Number of detected balls: %d" % len(contours))

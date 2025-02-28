@@ -86,13 +86,28 @@ class miniproject:
 		return mahalanobis_distance_image.astype(np.uint8)
 
 
+	def findContours(self, mask):
+		contours, hierarchy = cv.findContours(global_mask, cv.RETR_TREE,
+				cv.CHAIN_APPROX_SIMPLE)
+
+		# Draw a circle above the center of each of the detected contours.
+		for contour in contours:
+			M = cv.moments(contour)
+			cx = int(M['m10'] / M['m00'])
+			cy = int(M['m01'] / M['m00'])
+			cv.circle(project.image, (cx, cy), 5, (0, 0, 255), 1)
+
+		return contours
+
+
+
 if __name__ == "__main__":
 	project = miniproject('./figures/pumpkins_cropped.tif', 'figures/EB-02-660_0595_0068.JPG','figures/pumpkin_annottated.JPG')
 	if project.image is None:
 		Warning("Image not loaded")
 		exit(1)
 
-	project.change_color_space(ColorSpace.HLS)
+	""" project.change_color_space(ColorSpace.HLS) """
 
 	mahalanobis_mask = project.mahalanobis_distance_mask()
 	masked_image = cv.bitwise_and(project.ref_image, project.ref_image, mask=mahalanobis_mask)
@@ -124,20 +139,11 @@ if __name__ == "__main__":
 	cv.imwrite("figures/output/mask.jpg", project.mask)
 	cv.imwrite("figures/output/masked_image.jpg", masked_image)
 
-	""" cv.imshow("annotated", masked_image) """
-	""" cv.waitKey(0) """
-	cv.destroyAllWindows()
-
-	contours, hierarchy = cv.findContours(global_mask, cv.RETR_TREE,
-			cv.CHAIN_APPROX_SIMPLE)
-
-	# Draw a circle above the center of each of the detected contours.
-	for contour in contours:
-		M = cv.moments(contour)
-		cx = int(M['m10'] / M['m00'])
-		cy = int(M['m01'] / M['m00'])
-		cv.circle(project.image, (cx, cy), 5, (0, 0, 255), 1)
+	contours = project.findContours(global_mask)
 
 	cv.imwrite("figures/output/detected_pumpkins.jpg", project.image)
+	""" cv.imshow("detected_pumpkins", project.image) """
+	""" cv.waitKey(0) """
+	""" cv.destroyAllWindows() """
 
 	print("Number of detected balls: %d" % len(contours))

@@ -43,10 +43,11 @@ class miniproject:
 			print("Imcorrect color space")
 
 
-	def create_mask(self, lower_bound, upper_bound):
-		self.mask = cv.inRange(self.annotated_image, lower_bound, upper_bound)
+	def create_mask(self, image, lower_bound, upper_bound):
+		self.mask = cv.inRange(image, lower_bound, upper_bound)
 
-		self.mean, self.std = cv.meanStdDev(self.image, self.mask)
+		self.mean, self.std = cv.meanStdDev(image, self.mask)
+		print(self.mean)
 
 
 if __name__ == "__main__":
@@ -56,12 +57,27 @@ if __name__ == "__main__":
 
 	red_lower = (0, 0, 200)
 	red_upper = (100, 100, 255)
-	project.create_mask(red_lower, red_upper)
- 
+	project.create_mask(project.annotated_image, red_lower, red_upper)
+
+
 	masked_image = None
 	masked_image = cv.bitwise_and(project.image, project.image, mask=project.mask)
+	
 	print(type(masked_image))
+	mean_color = cv.mean(project.image, mask=project.mask)  # Only take BGR values
  
+	mean, stddev = cv.meanStdDev(project.image, mask=project.mask)
+
+	# Convert from 2D array to tuple
+	mean = tuple(mean.flatten())
+	stddev = tuple(stddev.flatten())
+	stddev_half = [a/2 for a in stddev]
+
+	#low_orange = tuple(a - b for a, b in zip(mean, std)
+
+	print(stddev)
+	print(stddev_half)
+
 	cv.imwrite("figures/output/mask.jpg", project.mask)
 	cv.imwrite("figures/output/masked_image.jpg", masked_image)
 

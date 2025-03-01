@@ -144,3 +144,4 @@ with rasterio.open("figures/pumpkins_cropped.tif") as src:
             sum = sum + len(contours)
 
 print(f"Overall pumpkins detected: {sum}")
+

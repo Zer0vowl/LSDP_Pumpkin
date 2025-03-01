@@ -28,7 +28,7 @@ def calculate_mahalanobis_bounds(pixels, threshold=3.0):
     return lower_bound.astype(np.uint8), upper_bound.astype(np.uint8)
 
 # Configuration
-use_hls = False  # Change to False to use BGR
+use_hls = True  # Change to False to use BGR
 
 # Load images
 image = cv.imread("figures/EB-02-660_0595_0068.JPG")
@@ -105,7 +105,7 @@ with rasterio.open("figures/pumpkins_cropped.tif") as src:
                 tile = tile[:, :, :3]
 
             if use_hls:
-                tile = cv.cvtColor(tile, cv.COLOR_BGR2HLS)
+                tile = cv.cvtColor(tile, cv.COLOR_RGB2HLS)
             else:
                 tile = cv.cvtColor(tile, cv.COLOR_RGBA2BGR)
 

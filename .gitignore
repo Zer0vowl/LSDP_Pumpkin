@@ -170,6 +170,13 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 figures/pumpkins.qgz
+
 figures/output
 .null-*
 test
+
+.null-ls_929621_miniproject.py
+
+output/
+output2/
+

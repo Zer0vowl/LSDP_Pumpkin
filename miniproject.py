@@ -22,6 +22,7 @@ class miniproject:
 
 		if tif_image:
 			self.image = self.open_image(tif_image)
+			#self.image = cv.GaussianBlur(self.image, (5, 5), 0)
 
 		if refference_image:
 			self.ref_image = self.open_image(refference_image)
@@ -36,20 +37,20 @@ class miniproject:
 		return image
 
 
-	def change_color_space(self, color_space):
+	def change_color_space(self, image, color_space):
 		self.colorspace = color_space
 
 		if color_space == ColorSpace.CIELAB:
-			self.ref_image = cv.cvtColor(self.ref_image, cv.COLOR_BGR2LAB)
+			image = cv.cvtColor(image, cv.COLOR_BGR2LAB)
 		elif color_space == ColorSpace.HLS:
-			self.ref_image = cv.cvtColor(self.ref_image, cv.COLOR_BGR2HLS)
+			image = cv.cvtColor(image, cv.COLOR_BGR2HLS)
 		elif color_space == ColorSpace.HSV:
-			self.ref_image = cv.cvtColor(self.ref_image, cv.COLOR_BGR2HSV)
+			image = cv.cvtColor(image, cv.COLOR_BGR2HSV)
 		elif color_space == ColorSpace.RGB:
-			self.ref_image = cv.cvtColor(self.ref_image, cv.COLOR_BGR2RGB)
+			image = cv.cvtColor(image, cv.COLOR_BGR2RGB)
 		else:
 			print("Imcorrect color space")
-
+		return image
 
 	def threshold(self, image, lower_bound, upper_bound):
 		self.mask = cv.inRange(image, lower_bound, upper_bound)
@@ -60,6 +61,9 @@ class miniproject:
 		# Threshold the annotated image to get the mask
 		red_lower = (0, 0, 200)
 		red_upper = (100, 100, 255)
+  
+		red_lower = (0, 170, 150)   # (Hue, Lightness, Saturation)
+		red_upper = (10, 255, 255)
 		annotated_mask = self.threshold(self.ref_image_annotated, red_lower, red_upper)
 
 		# Extract the pixels from the annotated mask
@@ -107,7 +111,7 @@ if __name__ == "__main__":
 		Warning("Image not loaded")
 		exit(1)
 
-	""" project.change_color_space(ColorSpace.HLS) """
+	project.ref_image = project.change_color_space(project.ref_image, ColorSpace.HLS)
 
 	mahalanobis_mask = project.mahalanobis_distance_mask()
 	masked_image = cv.bitwise_and(project.ref_image, project.ref_image, mask=mahalanobis_mask)
@@ -135,15 +139,12 @@ if __name__ == "__main__":
 
 	out = cv.bitwise_and(project.image, project.image, mask=global_mask)
 	cv.imwrite("figures/output/out.jpg", out)
-
+ 
+ 
 	cv.imwrite("figures/output/mask.jpg", project.mask)
 	cv.imwrite("figures/output/masked_image.jpg", masked_image)
 
 	contours = project.findContours(global_mask)
 
 	cv.imwrite("figures/output/detected_pumpkins.jpg", project.image)
-	""" cv.imshow("detected_pumpkins", project.image) """
-	""" cv.waitKey(0) """
-	""" cv.destroyAllWindows() """
-
-	print("Number of detected balls: %d" % len(contours))
+	print("Number of detected pumpkins: %d" % len(contours))

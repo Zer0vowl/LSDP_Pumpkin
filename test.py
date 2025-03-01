@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import rasterio
 from rasterio.windows import Window
 
+
+use_hls = True  # Change to False to use BGR
+
 def create_mask(image, lower_bound, upper_bound):
     mask = cv.inRange(image, lower_bound, upper_bound)
     return mask
@@ -26,9 +29,6 @@ def calculate_mahalanobis_bounds(pixels, threshold=3.0):
     upper_bound = np.max(filtered_pixels, axis=0)
 
     return lower_bound.astype(np.uint8), upper_bound.astype(np.uint8)
-
-# Configuration
-use_hls = True  # Change to False to use BGR
 
 # Load images
 image = cv.imread("figures/EB-02-660_0595_0068.JPG")
@@ -81,7 +81,7 @@ if use_hls:
 cv.imwrite("detected_pumpkins.jpg", image)
 print("Number of detected pumpkins: %d" % len(contours))
 
-tile_size = 512  # You can adjust this
+tile_size = 512
 sum = 0
 
 # Open the large TIFF image
@@ -119,7 +119,7 @@ with rasterio.open("figures/pumpkins_cropped.tif") as src:
             # Apply mask
             masked_image = cv.bitwise_and(tile, tile, mask=final_mask)
             if use_hls:
-                masked_image = cv.cvtColor(masked_image, cv.COLOR_HLS2RGB)
+                masked_image = cv.cvtColor(masked_image, cv.COLOR_HLS2BGR)
 
             cv.imwrite(f"output/masked_{i}_{j}.jpg", masked_image)
 
@@ -134,7 +134,7 @@ with rasterio.open("figures/pumpkins_cropped.tif") as src:
 
             # Convert back if needed
             if use_hls:
-                tile = cv.cvtColor(tile, cv.COLOR_HLS2RGB)
+                tile = cv.cvtColor(tile, cv.COLOR_HLS2BGR)
 
             # Save the final processed tile
             cv.imwrite(f"output/detected_{i}_{j}.jpg", tile)

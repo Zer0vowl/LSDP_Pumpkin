@@ -141,6 +141,14 @@ def oklab(image, idx):
 	return l, a, b
 
 
+def extend_histogram(image, min_val, max_val):
+	assert min_val < max_val, "Min value must be less than max value"
+	assert len(image.shape) == 2, "Image must be a grayscale image"
+
+	stretched = ((image - min_val) / (max_val - min_val) * 255).astype(np.uint8)
+	return stretched
+
+
 # Load images
 KENYA_DIR = "./figures/kenya/annotation/"
 image = cv.imread(KENYA_DIR + "tile_6_18.png")

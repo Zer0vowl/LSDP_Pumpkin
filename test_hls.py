@@ -59,3 +59,7 @@ def detect_pumpkins_hls(image, idx):
 	cv.imwrite(f"test/circle_{idx}.png", image)
 	return len(contours)
 
+if __name__ == "__main__":
+	image = cv.imread("figures/pumpkins_cropped.tif")
+	detect_pumpkins_hls(image, 0)
+
